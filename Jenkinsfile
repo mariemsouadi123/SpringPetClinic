@@ -7,14 +7,7 @@ pipeline {
         DOCKER_CREDS = credentials('dockerhub-creds')
     }
 
-    stages {
-
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/mariemsouadi123/SpringPetClinic.git'
-            }
-        }
+    stages 
 
         stage('Build JAR') {
             steps {
@@ -56,11 +49,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline executed successfully with SonarQube!'
+            echo '✅ Pipeline executed successfully with SonarQube!'
         }
         failure {
-            echo ' Pipeline failed'
+            echo '❌ Pipeline failed'
         }
     }
 }
-
