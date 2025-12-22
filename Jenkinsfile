@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "mariemsouadi12189/spring-petclinic"
+        DOCKER_IMAGE = "mariemsouadi123/spring-petclinic"
         DOCKER_TAG = "latest"
-        DOCKER_CREDS = credentials('dockerhub-creds')
+        DOCKER_CREDS = credentials('22fac1e2-e9b5-415f-b8ce-38633a4140eb')
     }
 
-    stages 
+    stages {
 
         stage('Build JAR') {
             steps {
@@ -20,8 +20,8 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
                     mvn sonar:sonar \
-                    -Dsonar.projectKey=spring-petclinic \
-                    -Dsonar.projectName=spring-petclinic \
+                    -Dsonar.projectKey=springpetclinic \
+                    -Dsonar.projectName=springpetclinic \
                     -Dsonar.java.binaries=target
                     '''
                 }
@@ -49,10 +49,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline executed successfully with SonarQube!'
+            echo 'Pipeline executed successfully with SonarQube!'
         }
         failure {
-            echo '❌ Pipeline failed'
+            echo 'Pipeline failed'
         }
     }
 }
