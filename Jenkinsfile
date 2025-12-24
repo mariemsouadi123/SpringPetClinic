@@ -7,8 +7,8 @@ pipeline {
         DOCKER_CREDS = credentials('dockerhub-creds')
         KUBE_NAMESPACE = "default"
         KUBE_DEPLOYMENT = "spring-petclinic"
-        LOCAL_PORT = "8888"    // Local port for port-forwarding
-        POD_PORT = "8085"      // Pod port your app listens on
+        LOCAL_PORT = "8888"
+        POD_PORT = "8085"
     }
 
     stages {
@@ -53,21 +53,19 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Apply Kubernetes deployment
+                    // Apply deployment & service
                     sh '''
                     kubectl apply -f k8s-deployment.yaml
                     kubectl apply -f k8s-service.yaml
+                    kubectl rollout status deployment/$KUBE_DEPLOYMENT
                     '''
 
-                    // Wait for pods to be ready
-                    sh 'kubectl rollout status deployment/$KUBE_DEPLOYMENT'
-
-                    // Get the pod name dynamically
+                    // Get pod name and port-forward inside one shell block
+                    sh '''
                     POD_NAME=$(kubectl get pods -l app=$KUBE_DEPLOYMENT -o jsonpath="{.items[0].metadata.name}")
-
-                    // Port-forward the pod to localhost
                     echo "Port-forwarding pod $POD_NAME to http://localhost:$LOCAL_PORT"
-                    sh "kubectl port-forward $POD_NAME $LOCAL_PORT:$POD_PORT &"
+                    kubectl port-forward $POD_NAME $LOCAL_PORT:$POD_PORT &
+                    '''
                 }
             }
         }
