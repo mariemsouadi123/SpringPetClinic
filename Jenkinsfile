@@ -5,10 +5,9 @@ pipeline {
         DOCKER_IMAGE = "mariemsouadi12189/spring-petclinic"
         DOCKER_TAG = "latest"
         DOCKER_CREDS = credentials('dockerhub-creds')
+
         KUBE_NAMESPACE = "default"
         KUBE_DEPLOYMENT = "spring-petclinic"
-        LOCAL_PORT = "8888"
-        POD_PORT = "8085"
     }
 
     stages {
@@ -52,39 +51,51 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    // Apply deployment & service
-                    sh '''
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
-                    kubectl rollout status deployment/$KUBE_DEPLOYMENT
-                    '''
-
-                    // Get pod name and port-forward inside one shell block
-                    sh '''
-                    POD_NAME=$(kubectl get pods -l app=$KUBE_DEPLOYMENT -o jsonpath="{.items[0].metadata.name}")
-                    echo "Port-forwarding pod $POD_NAME to http://localhost:$LOCAL_PORT"
-                    kubectl port-forward $POD_NAME $LOCAL_PORT:$POD_PORT &
-                    '''
-                }
+                sh '''
+                kubectl apply -f k8s/deployment.yaml
+                kubectl apply -f k8s/service.yaml
+                kubectl rollout status deployment/$KUBE_DEPLOYMENT -n $KUBE_NAMESPACE
+                '''
             }
         }
     }
 
     post {
+
         success {
-            echo 'Pipeline executed successfully with SonarQube, Docker, and Kubernetes!'
+            mail to: 'souadimariem74@gmail.com',
+                 subject: " Jenkins Pipeline SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: """
+Hello Mariem,
+
+Good news 🎉
+
+Your Jenkins pipeline has completed SUCCESSFULLY.
+
+Job Name   : ${env.JOB_NAME}
+Build No   : ${env.BUILD_NUMBER}
+Build URL  : ${env.BUILD_URL}
+
+The application has been:
+- Built successfully
+- Analyzed by SonarQube
+- Docker image pushed to Docker Hub
+- Deployed to Kubernetes
+
+You can now access the application via the Kubernetes service.
+
+Regards,
+Jenkins
+"""
         }
 
         failure {
-            echo 'Pipeline failed'
-
             mail to: 'souadimariem74@gmail.com',
                  subject: " Jenkins Pipeline FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                  body: """
-Hello,
+Hello Mariem,
 
-The Jenkins pipeline has FAILED.
+The Jenkins pipeline has FAILED 
 
 Job Name   : ${env.JOB_NAME}
 Build No   : ${env.BUILD_NUMBER}
