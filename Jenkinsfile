@@ -75,8 +75,26 @@ pipeline {
         success {
             echo 'Pipeline executed successfully with SonarQube, Docker, and Kubernetes!'
         }
+
         failure {
             echo 'Pipeline failed'
+
+            mail to: 'souadimariem74@gmail.com',
+                 subject: " Jenkins Pipeline FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: """
+Hello,
+
+The Jenkins pipeline has FAILED.
+
+Job Name   : ${env.JOB_NAME}
+Build No   : ${env.BUILD_NUMBER}
+Build URL  : ${env.BUILD_URL}
+
+Please check the Jenkins logs for more details.
+
+Regards,
+Jenkins
+"""
         }
     }
 }
